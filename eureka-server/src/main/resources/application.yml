@@ -1,0 +1,12 @@
+
+server:
+  port: 8761
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    registerWithEureka: false # Evita que el servidor intente registrarse a sí mismo
+    fetchRegistry: false      # No necesita descargar el directorio, él lo posee
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
