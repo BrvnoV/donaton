@@ -1,0 +1,18 @@
+# Excluir carpetas de compilación de Maven
+**/target/
+*.jar
+*.war
+
+# Excluir carpetas de dependencias Frontend (para cuando lo agregues)
+**/node_modules/
+**/build/
+**/dist/
+
+# Archivos de configuración de editores e IDEs (VS Code, IntelliJ)
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+.DS_Store
