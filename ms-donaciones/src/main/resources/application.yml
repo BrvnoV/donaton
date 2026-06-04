@@ -1,11 +1,25 @@
+
 server:
   port: 8081
+
 spring:
   application:
     name: ms-donaciones
   datasource:
-    url: jdbc:mysql://localhost:3306/db_donaciones
+    url: jdbc:mysql://localhost:3306/db_donaciones?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: root # Reemplazar con su usuario de MySQL local
+    password: root # Reemplazar con su contraseña de MySQL local
+  jpa:
+    hibernate:
+      ddl-auto: update # Crea las tablas automáticamente en MySQL si no existen
+    show-sql: true # Muestra en la consola las consultas que Spring hace a la base de datos
+    properties:
+      hibernate:
+        format_sql: true
+
 eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true

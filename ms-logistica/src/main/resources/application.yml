@@ -1,11 +1,24 @@
 server:
   port: 8082
+
 spring:
   application:
     name: ms-logistica
   datasource:
-    url: jdbc:mysql://localhost:3306/db_logistica
+    url: jdbc:mysql://localhost:3306/db_donaciones?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: root # Que ponga aquí su usuario de MySQL
+    password: root # Que ponga aquí su contraseña de MySQL
+  jpa:
+    hibernate:
+      ddl-auto: update # Crea la tabla 'envios_logistica' automáticamente
+    show-sql: true # Muestra las operaciones en la consola
+    properties:
+      hibernate:
+        format_sql: true
+
 eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
