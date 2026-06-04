@@ -25,6 +25,6 @@ public class BffDonacionController {
     @PostMapping
     public Mono<ResponseEntity<Object>> registrarDonacion(@RequestBody Object nuevaDonacion) {
         return bffDonacionService.crearDonacion(nuevaDonacion)
-                .map(resultado -> ResponseEntity.status(21).body(resultado));
+                .map(resultado -> ResponseEntity.status(201).body(resultado));
     }
 }

@@ -15,32 +15,43 @@ public class BffDonacionService {
     @Autowired
     private WebClient.Builder webClientBuilder;
 
-    // URLs lógicas registradas en Eureka
+    // URLs lógicas registradas y balanceadas mediante Eureka
     private final String MS_DONACIONES_URL = "http://ms-donaciones";
     private final String MS_LOGISTICA_URL = "http://ms-logistica";
     private final String MS_NECESIDADES_URL = "http://ms-necesidades";
 
     // ==========================================
-    // 🍏 FLUJO: DONACIONES (Ya implementado)
+    // 🎁 FLUJO: DONACIONES
     // ==========================================
+
     @CircuitBreaker(name = "donacionesCB", fallbackMethod = "fallbackObtenerDonaciones")
     public Mono<List> obtenerTodasLasDonaciones() {
-        return webClientBuilder.build().get().uri(MS_DONACIONES_URL + "/donaciones").retrieve().bodyToMono(List.class);
+        return webClientBuilder.build()
+                .get()
+                .uri(MS_DONACIONES_URL + "/donaciones")
+                .retrieve()
+                .bodyToMono(List.class);
     }
 
     @CircuitBreaker(name = "donacionesCB", fallbackMethod = "fallbackCrearDonacion")
     public Mono<Object> crearDonacion(Object nuevaDonacion) {
-        return webClientBuilder.build().post().uri(MS_DONACIONES_URL + "/donaciones").bodyValue(nuevaDonacion).retrieve().bodyToMono(Object.class);
+        return webClientBuilder.build()
+                .post()
+                .uri(MS_DONACIONES_URL + "/donaciones")
+                .bodyValue(nuevaDonacion)
+                .retrieve()
+                .bodyToMono(Object.class);
     }
 
     // ==========================================
-    // 🚚 FLUJO: LOGÍSTICA (Nuevo)
+    // 🚚 FLUJO: LOGÍSTICA
     // ==========================================
+
     @CircuitBreaker(name = "logisticaCB", fallbackMethod = "fallbackObtenerEnvios")
     public Mono<List> obtenerTodosLosEnvios() {
         return webClientBuilder.build()
                 .get()
-                .uri(MS_LOGISTICA_URL + "/envios") // Ruta del controlador en ms-logistica
+                .uri(MS_LOGISTICA_URL + "/envios")
                 .retrieve()
                 .bodyToMono(List.class);
     }
@@ -56,13 +67,14 @@ public class BffDonacionService {
     }
 
     // ==========================================
-    // 🚨 FLUJO: NECESIDADES (Nuevo)
+    // 🚨 FLUJO: NECESIDADES
     // ==========================================
+
     @CircuitBreaker(name = "necesidadesCB", fallbackMethod = "fallbackObtenerNecesidades")
     public Mono<List> obtenerTodasLasNecesidades() {
         return webClientBuilder.build()
                 .get()
-                .uri(MS_NECESIDADES_URL + "/necesidades") // Ruta del controlador en ms-necesidades
+                .uri(MS_NECESIDADES_URL + "/necesidades")
                 .retrieve()
                 .bodyToMono(List.class);
     }
@@ -80,11 +92,15 @@ public class BffDonacionService {
     // ==========================================
     // 🛡️ MÉTODOS DE FALLBACK (PLANES DE RESPALDO)
     // ==========================================
+
+    // Fallbacks Donaciones
     public Mono<List> fallbackObtenerDonaciones(Throwable t) {
+        System.out.println("🚨 [CB Donaciones] ms-donaciones caído. Motivo: " + t.getMessage());
         return Mono.just(Collections.singletonList("Servicio de donaciones no disponible (Modo Resiliente)"));
     }
 
     public Mono<Object> fallbackCrearDonacion(Object o, Throwable t) {
+        System.out.println("🚨 [CB Donaciones] Fallo al registrar POST. Motivo: " + t.getMessage());
         return Mono.just(Collections.singletonMap("error", "No se pudo registrar la donación. Inténtelo más tarde."));
     }
 
@@ -95,7 +111,9 @@ public class BffDonacionService {
     }
 
     public Mono<Object> fallbackCrearEnvio(Object nuevoEnvio, Throwable t) {
-        return Mono.just(Collections.singletonMap("error", "No se pudo agendar el despacho de logística en este momento."));
+        System.out.println("🚨 [CB Logística] Fallo al crear envío. Motivo: " + t.getMessage());
+        return Mono.just(
+                Collections.singletonMap("error", "No se pudo agendar el despacho de logística en este momento."));
     }
 
     // Fallbacks Necesidades
@@ -105,6 +123,8 @@ public class BffDonacionService {
     }
 
     public Mono<Object> fallbackCrearNecesidad(Object nuevaNecesidad, Throwable t) {
-        return Mono.just(Collections.singletonMap("error", "No se pudo levantar la solicitud de necesidad. Inténtelo de nuevo."));
+        System.out.println("🚨 [CB Necesidades] Fallo al crear necesidad. Motivo: " + t.getMessage());
+        return Mono.just(Collections.singletonMap("error",
+                "No se pudo levantar la solicitud de necesidad. Inténtelo de nuevo."));
     }
 }

@@ -1,12 +1,17 @@
 package cl.duoc.donaton.ms.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "donaciones")
 @Data // Genera automáticamente getters, setters, equals, y toString gracias a Lombok
+@NoArgsConstructor // ◄ IMPORTANTE: Genera el constructor vacío que JPA exige obligatoriamente
+@AllArgsConstructor // ◄ Genera el constructor con todos los campos
 public class Donacion {
 
     @Id
