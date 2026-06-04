@@ -1,44 +1,43 @@
 server:
-  port: 8080 # Puerto estándar para la capa de acceso (BFF)
+  port: 8080
 
 spring:
   application:
-    name: donaton-bff # Identificador con el que se registrará en Eureka
+    name: donaton-bff
 
-# Configuración del Cliente Eureka (Descubrimiento)
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/ # URL del servidor de infraestructura Eureka
+      defaultZone: http://localhost:8761/eureka/
   instance:
     prefer-ip-address: true
 
-# Configuración de Logs (Centralización básica por consola y archivo)
-logging:
-  level:
-    root: INFO
-    cl.duoc.donaton: DEBUG # Muestra logs detallados de tus clases en la consola
-  file:
-    name: logs/donaton-bff.log # Guarda los logs en un archivo para auditoría externa
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-
-# Configuración de Resilience4j para el Circuit Breaker
+# 🛡️ Configuración base para monitorear los Circuit Breakers en Consola
 resilience4j:
   circuitbreaker:
     instances:
-      msDonacionesCB: # Nombre del circuito para las llamadas a MS-Donaciones
-        slidingWindowType: COUNT_BASED
-        slidingWindowSize: 5 # Analiza las últimas 5 llamadas
-        failureRateThreshold: 50 # Abre el circuito si el 50% falla
-        waitDurationInOpenState: 10000 # Espera 10 segundos en estado abierto antes de probar si revivió
+      donacionesCB:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000ms # Se mantiene abierto por 10 segundos antes de reintentar
         permittedNumberOfCallsInHalfOpenState: 3
-      msLogisticaCB: # Nombre del circuito para las llamadas a MS-Logística
-        slidingWindowSize: 5
+      logisticaCB:
+        slidingWindowSize: 10
         failureRateThreshold: 50
-        waitDurationInOpenState: 10000
-      msNecesidadesCB: # Nombre del circuito para las llamadas a MS-Necesidades
-        slidingWindowSize: 5
+        waitDurationInOpenState: 10000ms
+        permittedNumberOfCallsInHalfOpenState: 3
+      necesidadesCB:
+        slidingWindowSize: 10
         failureRateThreshold: 50
-        waitDurationInOpenState: 10000
+        waitDurationInOpenState: 10000ms
+        permittedNumberOfCallsInHalfOpenState: 3
+
+# Habilitar métricas de salud para que aparezcan en el Panel de Administración (Admin Panel)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, resilience4j
+  endpoint:
+    health:
+      show-details: always
