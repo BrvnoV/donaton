@@ -8,22 +8,22 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/bff/necesidades")
+@RequestMapping("/api/bff/necesidades") // ◄ Ruta para el módulo de necesidades
 @CrossOrigin(origins = "*")
 public class BffNecesidadController {
 
     @Autowired
-    private BffDonacionService bffService;
+    private BffDonacionService bffDonacionService;
 
     @GetMapping
-    public Mono<ResponseEntity<List>> listarNecesidades() {
-        return bffService.obtenerTodasLasNecesidades()
-                .map(necesidades -> ResponseEntity.ok().body(necesidades));
+    public Mono<ResponseEntity<Object>> listarNecesidades() {
+        return bffDonacionService.obtenerTodasLasNecesidades()
+                .map(necesidades -> ResponseEntity.ok((Object) necesidades));
     }
 
     @PostMapping
     public Mono<ResponseEntity<Object>> registrarNecesidad(@RequestBody Object nuevaNecesidad) {
-        return bffService.crearNecesidad(nuevaNecesidad)
+        return bffDonacionService.crearNecesidad(nuevaNecesidad)
                 .map(resultado -> ResponseEntity.status(201).body(resultado));
     }
 }

@@ -8,22 +8,22 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/bff/logistica")
+@RequestMapping("/api/bff/logistica") // ◄ Esta es la ruta exacta que llamas en Postman
 @CrossOrigin(origins = "*")
 public class BffLogisticaController {
 
     @Autowired
-    private BffDonacionService bffService;
+    private BffDonacionService bffDonacionService; // Conecta al servicio unificado
 
     @GetMapping
-    public Mono<ResponseEntity<List>> listarEnvios() {
-        return bffService.obtenerTodosLosEnvios()
-                .map(envios -> ResponseEntity.ok().body(envios));
+    public Mono<ResponseEntity<Object>> listarEnvios() { // ◄ Cambiado List por Object para soportar el fallback
+        return bffDonacionService.obtenerTodosLosEnvios()
+                .map(envios -> ResponseEntity.ok((Object) envios)); // ◄ Casteo explícito a Object
     }
 
     @PostMapping
     public Mono<ResponseEntity<Object>> registrarEnvio(@RequestBody Object nuevoEnvio) {
-        return bffService.crearEnvio(nuevoEnvio)
+        return bffDonacionService.crearEnvio(nuevoEnvio)
                 .map(resultado -> ResponseEntity.status(201).body(resultado));
     }
 }

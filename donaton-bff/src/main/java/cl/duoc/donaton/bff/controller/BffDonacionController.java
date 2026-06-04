@@ -17,9 +17,9 @@ public class BffDonacionController {
     private BffDonacionService bffDonacionService;
 
     @GetMapping
-    public Mono<ResponseEntity<List>> listarDonaciones() {
+    public Mono<ResponseEntity<Object>> listarDonaciones() {
         return bffDonacionService.obtenerTodasLasDonaciones()
-                .map(donaciones -> ResponseEntity.ok().body(donaciones));
+                .map(donaciones -> ResponseEntity.ok((Object) donaciones));
     }
 
     @PostMapping

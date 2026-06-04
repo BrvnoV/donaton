@@ -44,49 +44,63 @@ public class BffDonacionService {
     }
 
     // ==========================================
-    // 🚚 FLUJO: LOGÍSTICA
+    // 🚚 FLUJO: LOGÍSTICA (Blindado de forma Reactiva)
     // ==========================================
-
-    @CircuitBreaker(name = "logisticaCB", fallbackMethod = "fallbackObtenerEnvios")
+    
     public Mono<List> obtenerTodosLosEnvios() {
         return webClientBuilder.build()
                 .get()
                 .uri(MS_LOGISTICA_URL + "/envios")
                 .retrieve()
-                .bodyToMono(List.class);
+                .bodyToMono(List.class)
+                // 🛡️ Si ms-logistica está apagado, este operador atrapa el fallo al instante
+                .onErrorResume(throwable -> {
+                    System.out.println("🚨 [FALLBACK MANUAL] ms-logistica caído. Motivo: " + throwable.getMessage());
+                    return fallbackObtenerEnvios(throwable);
+                });
     }
 
-    @CircuitBreaker(name = "logisticaCB", fallbackMethod = "fallbackCrearEnvio")
     public Mono<Object> crearEnvio(Object nuevoEnvio) {
         return webClientBuilder.build()
                 .post()
                 .uri(MS_LOGISTICA_URL + "/envios")
                 .bodyValue(nuevoEnvio)
                 .retrieve()
-                .bodyToMono(Object.class);
+                .bodyToMono(Object.class)
+                .onErrorResume(throwable -> {
+                    System.out.println("🚨 [FALLBACK MANUAL] Fallo POST ms-logistica. Motivo: " + throwable.getMessage());
+                    return fallbackCrearEnvio(nuevoEnvio, throwable);
+                });
     }
 
     // ==========================================
-    // 🚨 FLUJO: NECESIDADES
+    // 🚨 FLUJO: NECESIDADES (Blindado de forma Reactiva)
     // ==========================================
-
-    @CircuitBreaker(name = "necesidadesCB", fallbackMethod = "fallbackObtenerNecesidades")
+    
     public Mono<List> obtenerTodasLasNecesidades() {
         return webClientBuilder.build()
                 .get()
                 .uri(MS_NECESIDADES_URL + "/necesidades")
                 .retrieve()
-                .bodyToMono(List.class);
+                .bodyToMono(List.class)
+                // 🛡️ Si ms-necesidades está apagado, salta aquí directamente
+                .onErrorResume(throwable -> {
+                    System.out.println("🚨 [FALLBACK MANUAL] ms-necesidades caído. Motivo: " + throwable.getMessage());
+                    return fallbackObtenerNecesidades(throwable);
+                });
     }
 
-    @CircuitBreaker(name = "necesidadesCB", fallbackMethod = "fallbackCrearNecesidad")
     public Mono<Object> crearNecesidad(Object nuevaNecesidad) {
         return webClientBuilder.build()
                 .post()
                 .uri(MS_NECESIDADES_URL + "/necesidades")
                 .bodyValue(nuevaNecesidad)
                 .retrieve()
-                .bodyToMono(Object.class);
+                .bodyToMono(Object.class)
+                .onErrorResume(throwable -> {
+                    System.out.println("🚨 [FALLBACK MANUAL] Fallo POST ms-necesidades. Motivo: " + throwable.getMessage());
+                    return fallbackCrearNecesidad(nuevaNecesidad, throwable);
+                });
     }
 
     // ==========================================
