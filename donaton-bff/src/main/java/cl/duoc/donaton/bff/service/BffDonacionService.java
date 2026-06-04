@@ -15,52 +15,96 @@ public class BffDonacionService {
     @Autowired
     private WebClient.Builder webClientBuilder;
 
-    // Nombre lógico del microservicio registrado en el application.yml de Rodrigo
+    // URLs lógicas registradas en Eureka
     private final String MS_DONACIONES_URL = "http://ms-donaciones";
+    private final String MS_LOGISTICA_URL = "http://ms-logistica";
+    private final String MS_NECESIDADES_URL = "http://ms-necesidades";
 
-    /**
-     * Obtiene la lista completa de donaciones desde el microservicio core.
-     * El circuit breaker se llama "donacionesCB" y define un método de fallback si falla.
-     */
+    // ==========================================
+    // 🍏 FLUJO: DONACIONES (Ya implementado)
+    // ==========================================
     @CircuitBreaker(name = "donacionesCB", fallbackMethod = "fallbackObtenerDonaciones")
     public Mono<List> obtenerTodasLasDonaciones() {
+        return webClientBuilder.build().get().uri(MS_DONACIONES_URL + "/donaciones").retrieve().bodyToMono(List.class);
+    }
+
+    @CircuitBreaker(name = "donacionesCB", fallbackMethod = "fallbackCrearDonacion")
+    public Mono<Object> crearDonacion(Object nuevaDonacion) {
+        return webClientBuilder.build().post().uri(MS_DONACIONES_URL + "/donaciones").bodyValue(nuevaDonacion).retrieve().bodyToMono(Object.class);
+    }
+
+    // ==========================================
+    // 🚚 FLUJO: LOGÍSTICA (Nuevo)
+    // ==========================================
+    @CircuitBreaker(name = "logisticaCB", fallbackMethod = "fallbackObtenerEnvios")
+    public Mono<List> obtenerTodosLosEnvios() {
         return webClientBuilder.build()
                 .get()
-                .uri(MS_DONACIONES_URL + "/donaciones") // Ajustar ruta según los endpoints del microservicio
+                .uri(MS_LOGISTICA_URL + "/envios") // Ruta del controlador en ms-logistica
                 .retrieve()
                 .bodyToMono(List.class);
     }
 
-    /**
-     * Enviar una nueva donación al microservicio core.
-     */
-    @CircuitBreaker(name = "donacionesCB", fallbackMethod = "fallbackCrearDonacion")
-    public Mono<Object> crearDonacion(Object nuevaDonacion) {
+    @CircuitBreaker(name = "logisticaCB", fallbackMethod = "fallbackCrearEnvio")
+    public Mono<Object> crearEnvio(Object nuevoEnvio) {
         return webClientBuilder.build()
                 .post()
-                .uri(MS_DONACIONES_URL + "/donaciones")
-                .bodyValue(nuevaDonacion)
+                .uri(MS_LOGISTICA_URL + "/envios")
+                .bodyValue(nuevoEnvio)
                 .retrieve()
                 .bodyToMono(Object.class);
     }
 
     // ==========================================
-    // 🛡️ MÉTODOS DE FALLBACK (PLAN DE RESPALDO)
+    // 🚨 FLUJO: NECESIDADES (Nuevo)
     // ==========================================
-
-    /**
-     * Si ms-donaciones no responde, devolvemos una lista vacía controlada en lugar de romper el BFF.
-     */
-    public Mono<List> fallbackObtenerDonaciones(Throwable t) {
-        System.out.println("🚨 [Circuit Breaker] ms-donaciones no disponible. Motivo: " + t.getMessage());
-        return Mono.just(Collections.singletonList("Servicio de donaciones temporalmente no disponible (Modo Resiliente Activo)"));
+    @CircuitBreaker(name = "necesidadesCB", fallbackMethod = "fallbackObtenerNecesidades")
+    public Mono<List> obtenerTodasLasNecesidades() {
+        return webClientBuilder.build()
+                .get()
+                .uri(MS_NECESIDADES_URL + "/necesidades") // Ruta del controlador en ms-necesidades
+                .retrieve()
+                .bodyToMono(List.class);
     }
 
-    /**
-     * Si falla la creación, devolvemos un objeto de error controlado indicando el estado.
-     */
-    public Mono<Object> fallbackCrearDonacion(Object nuevaDonacion, Throwable t) {
-        System.out.println("🚨 [Circuit Breaker] Error al registrar donación. Motivo: " + t.getMessage());
-        return Mono.just(Collections.singletonMap("error", "No se pudo procesar el registro de la donación en este momento. Inténtelo más tarde."));
+    @CircuitBreaker(name = "necesidadesCB", fallbackMethod = "fallbackCrearNecesidad")
+    public Mono<Object> crearNecesidad(Object nuevaNecesidad) {
+        return webClientBuilder.build()
+                .post()
+                .uri(MS_NECESIDADES_URL + "/necesidades")
+                .bodyValue(nuevaNecesidad)
+                .retrieve()
+                .bodyToMono(Object.class);
+    }
+
+    // ==========================================
+    // 🛡️ MÉTODOS DE FALLBACK (PLANES DE RESPALDO)
+    // ==========================================
+    public Mono<List> fallbackObtenerDonaciones(Throwable t) {
+        return Mono.just(Collections.singletonList("Servicio de donaciones no disponible (Modo Resiliente)"));
+    }
+
+    public Mono<Object> fallbackCrearDonacion(Object o, Throwable t) {
+        return Mono.just(Collections.singletonMap("error", "No se pudo registrar la donación. Inténtelo más tarde."));
+    }
+
+    // Fallbacks Logística
+    public Mono<List> fallbackObtenerEnvios(Throwable t) {
+        System.out.println("🚨 [CB Logística] ms-logistica caído. Motivo: " + t.getMessage());
+        return Mono.just(Collections.singletonList("Servicio de seguimiento logístico temporalmente fuera de línea"));
+    }
+
+    public Mono<Object> fallbackCrearEnvio(Object nuevoEnvio, Throwable t) {
+        return Mono.just(Collections.singletonMap("error", "No se pudo agendar el despacho de logística en este momento."));
+    }
+
+    // Fallbacks Necesidades
+    public Mono<List> fallbackObtenerNecesidades(Throwable t) {
+        System.out.println("🚨 [CB Necesidades] ms-necesidades caído. Motivo: " + t.getMessage());
+        return Mono.just(Collections.singletonList("Servicio de catastro de necesidades no disponible"));
+    }
+
+    public Mono<Object> fallbackCrearNecesidad(Object nuevaNecesidad, Throwable t) {
+        return Mono.just(Collections.singletonMap("error", "No se pudo levantar la solicitud de necesidad. Inténtelo de nuevo."));
     }
 }
