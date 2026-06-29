@@ -1,0 +1,4 @@
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE campanas_voluntarios;
+TRUNCATE TABLE voluntarios;
+SET FOREIGN_KEY_CHECKS = 1;

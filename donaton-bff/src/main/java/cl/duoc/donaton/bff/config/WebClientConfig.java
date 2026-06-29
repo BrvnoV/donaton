@@ -11,6 +11,7 @@ public class WebClientConfig {
     @Bean
     @LoadBalanced // ◄ Permite resolver los nombres lógicos de los microservicios automáticamente
     public WebClient.Builder webClientBuilder() {
-        return WebClient.builder();
+        return WebClient.builder()
+                .defaultHeader("X-Gateway-Secret", "DonatonGatewaySecret-777");
     }
 }

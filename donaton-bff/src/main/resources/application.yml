@@ -21,12 +21,12 @@ resilience4j:
         failureRateThreshold: 50
         waitDurationInOpenState: 10000ms # Se mantiene abierto por 10 segundos antes de reintentar
         permittedNumberOfCallsInHalfOpenState: 3
-      logisticaCB:
+      campanasCB:
         slidingWindowSize: 10
         failureRateThreshold: 50
         waitDurationInOpenState: 10000ms
         permittedNumberOfCallsInHalfOpenState: 3
-      necesidadesCB:
+      voluntariosCB:
         slidingWindowSize: 10
         failureRateThreshold: 50
         waitDurationInOpenState: 10000ms
@@ -41,3 +41,6 @@ management:
   endpoint:
     health:
       show-details: always
+  health:
+    circuitbreakers:
+      enabled: true

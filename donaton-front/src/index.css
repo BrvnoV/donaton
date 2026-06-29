@@ -1,0 +1,28 @@
+:root {
+  --bg-general: #FFFFFF;
+  --color-primario: #009DDC;
+  --color-secundario: #2A2D34;
+  --color-acento: #F26430;
+  --color-texto: #2A2D34;
+}
+
+[data-theme='dark'] {
+  --bg-general: #1A1C20;
+  --color-primario: #009DDC;
+  --color-secundario: #4A4D54;
+  --color-acento: #F26430;
+  --color-texto: #FFFFFF;
+}
+
+body {
+  background-color: var(--bg-general);
+  color: var(--color-texto);
+  font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-primario);
+}

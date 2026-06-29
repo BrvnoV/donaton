@@ -1,0 +1,9 @@
+1. URL Repositorio Frontend: https://github.com/organizacion-donaton/donaton-front
+2. URL Repositorio Backend Orquestador (BFF): https://github.com/organizacion-donaton/donaton-bff
+3. URL Repositorio Microservicio Campañas: https://github.com/organizacion-donaton/ms-campanas
+4. URL Repositorio Microservicio Donaciones: https://github.com/organizacion-donaton/ms-donaciones
+5. URL Repositorio Microservicio Voluntarios: https://github.com/organizacion-donaton/ms-voluntarios
+6. URL Repositorio Eureka Server: https://github.com/organizacion-donaton/eureka-server
+7. URL Repositorio Panel Admin: https://github.com/organizacion-donaton/admin-panel
+
+Nota: El repositorio base contiene todas las configuraciones centralizadas de resiliencia (Circuit Breakers) y seguridad Gateway para la evaluación parcial N°3.

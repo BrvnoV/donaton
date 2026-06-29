@@ -1,0 +1,119 @@
+{
+  "info": {
+    "name": "Donaton EP3 - Arquitectura Defensiva",
+    "description": "Colección completa para auditar la resiliencia y el comportamiento del orquestador (BFF) ante caminos felices e infelices.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Caminos Felices (Happy Paths)",
+      "item": [
+        {
+          "name": "1. Registrar Voluntario (Público)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "http://localhost:8080/api/bff/voluntarios", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "bff", "voluntarios"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan Pérez\",\n  \"contacto\": \"+56912345678\",\n  \"correo\": \"juan.perez@example.com\",\n  \"campanaId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "2. Iniciar Sesión Administrador (Auth)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "http://localhost:8080/api/bff/auth/login", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "bff", "auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "3. Crear Campaña (Protegido JWT)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": { "raw": "http://localhost:8080/api/bff/campanas", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "bff", "campanas"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Campaña Invierno 2026\",\n  \"descripcion\": \"Acopio de ropa térmica\",\n  \"fechaInicio\": \"2026-07-01T00:00:00\",\n  \"fechaFin\": \"2026-07-31T00:00:00\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Caminos Infelices (Unhappy Paths)",
+      "item": [
+        {
+          "name": "1. Falla JWT: Editar Campaña Sin Token",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "http://localhost:8080/api/bff/campanas/1/estado", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "bff", "campanas", "1", "estado"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"COMPLETED\"\n}"
+            }
+          }
+        },
+        {
+          "name": "2. Falla Validación: Donación Monto Negativo",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "http://localhost:8080/api/bff/donaciones", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "bff", "donaciones"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"campanaId\": 1,\n  \"donante\": \"Anónimo\",\n  \"tipoRecurso\": \"DINERO\",\n  \"cantidad\": -15000.0\n}"
+            }
+          }
+        },
+        {
+          "name": "3. Falla Consistencia: Fechas Inválidas",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{jwt_token}}" }
+            ],
+            "url": { "raw": "http://localhost:8080/api/bff/campanas", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "bff", "campanas"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Campaña Errónea\",\n  \"descripcion\": \"Falla\",\n  \"fechaInicio\": \"2026-08-01T00:00:00\",\n  \"fechaFin\": \"2026-07-01T00:00:00\"\n}"
+            }
+          }
+        },
+        {
+          "name": "4. Falla Unique: Voluntario Correo Duplicado",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "http://localhost:8080/api/bff/voluntarios", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "bff", "voluntarios"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan Pérez (Repetido)\",\n  \"contacto\": \"+56912345678\",\n  \"correo\": \"juan.perez@example.com\",\n  \"campanaId\": 1\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

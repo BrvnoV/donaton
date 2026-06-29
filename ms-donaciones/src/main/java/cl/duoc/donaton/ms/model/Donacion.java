@@ -18,10 +18,15 @@ public class Donacion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "campana_id", nullable = false)
+    private Long campanaId;
+
     @Column(nullable = false, name = "tipo_recurso")
     private String tipoRecurso; // Ejemplo: ALIMENTOS, ROPA, DINERO, MEDICAMENTOS
 
     @Column(nullable = false)
+    @jakarta.validation.constraints.NotNull(message = "La cantidad es obligatoria")
+    @jakarta.validation.constraints.Min(value = 1, message = "La cantidad debe ser mayor a cero")
     private Double cantidad;
 
     @Column(nullable = false)
