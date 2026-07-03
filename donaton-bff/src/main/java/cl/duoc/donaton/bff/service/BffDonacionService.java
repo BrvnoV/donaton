@@ -62,6 +62,17 @@ public class BffDonacionService {
                 .bodyToMono(Object.class);
     }
 
+    @CircuitBreaker(name = "donacionesCB", fallbackMethod = "fallbackEliminarDonacion")
+    public Mono<Object> eliminarDonacion(Long id) {
+        log.info("Llamando a ms-donaciones para eliminar donación ID: {}", id);
+        return webClientBuilder.build()
+                .delete()
+                .uri(MS_DONACIONES_URL + "/donaciones/" + id)
+                .retrieve()
+                .bodyToMono(Object.class)
+                .defaultIfEmpty(java.util.Collections.singletonMap("message", "Donación eliminada"));
+    }
+
     // Fallbacks
     public Mono<List> fallbackObtenerDonaciones(Throwable t) {
         log.error("🚨 Fallback obtener donaciones invocado debido a error: {}", t.getMessage(), t);
@@ -81,5 +92,10 @@ public class BffDonacionService {
     public Mono<Object> fallbackActualizarEstadoLogico(Long id, Map<String, String> body, Throwable t) {
         log.error("🚨 Fallback actualizar estado logístico donación ID {} invocado debido a error: {}", id, t.getMessage(), t);
         return Mono.just(Collections.singletonMap("error", "No se pudo actualizar el estado logístico de la donación."));
+    }
+
+    public Mono<Object> fallbackEliminarDonacion(Long id, Throwable t) {
+        log.error("🚨 Fallback eliminar donación ID {} invocado debido a error: {}", id, t.getMessage(), t);
+        return Mono.just(Collections.singletonMap("error", "No se pudo eliminar la donación."));
     }
 }

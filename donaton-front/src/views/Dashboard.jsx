@@ -27,13 +27,38 @@ const Dashboard = ({ darkMode }) => {
   const [editandoCampanaId, setEditandoCampanaId] = useState(null);
   const [formEditCampana, setFormEditCampana] = useState({ nombre: '', descripcion: '' });
 
+  const [voluntariosMap, setVoluntariosMap] = useState({});
+
   useEffect(() => {
     interceptoresAxios(setIsLoading, setServiceUnavailable);
   }, []);
 
   const cargarDatos = () => {
     clienteAxios.get('/campanas')
-      .then(res => setCampanas(Array.isArray(res.data) ? res.data : []))
+      .then(res => {
+        const camps = Array.isArray(res.data) ? res.data : [];
+        setCampanas(camps);
+        
+        const currentToken = sessionStorage.getItem('token');
+        if (currentToken) {
+          camps.forEach(c => {
+            clienteAxios.get(`/campanas/${c.id}/voluntarios`, {
+              headers: { 'Authorization': `Bearer ${currentToken}` }
+            })
+            .then(vRes => {
+              // BFF returns {campana, voluntarios} object
+              let vols = [];
+              if (Array.isArray(vRes.data)) {
+                vols = vRes.data;
+              } else if (vRes.data && Array.isArray(vRes.data.voluntarios)) {
+                vols = vRes.data.voluntarios;
+              }
+              setVoluntariosMap(prev => ({ ...prev, [c.id]: vols }));
+            })
+            .catch(e => console.error(e));
+          });
+        }
+      })
       .catch(() => setCampanas([]));
 
     clienteAxios.get('/campanas/resumen')
@@ -128,12 +153,18 @@ const Dashboard = ({ darkMode }) => {
     };
     clienteAxios.post('/voluntarios', payload)
       .then(res => {
+        // Check if it's actually an error response returned as 400
+        if (res.data && res.data.message && res.status === 400) {
+          mostrarAlerta('error', res.data.message);
+          return;
+        }
         mostrarAlerta('success', '¡Excelente! Te has registrado como voluntario de la campaña.');
         setFormVoluntario({ nombre: '', contacto: '', correo: '', campanaId: '' });
         cargarDatos();
       })
       .catch(err => {
-        mostrarAlerta('error', err.response?.data?.message || err.message);
+        const msg = err.response?.data?.message || err.response?.data?.error || err.message;
+        mostrarAlerta('error', msg || 'No se pudo completar el registro.');
       });
   };
 
@@ -166,6 +197,14 @@ const Dashboard = ({ darkMode }) => {
   };
 
   const cambiarEstadoCampana = (id, nuevoEstado) => {
+    // Regla de negocio: no se puede completar sin donaciones
+    if (nuevoEstado === 'COMPLETED') {
+      const donacionesCampana = donaciones.filter(d => d.campanaId === id);
+      if (donacionesCampana.length === 0) {
+        mostrarAlerta('error', 'No se puede completar la campaña: debe tener al menos una donación registrada.');
+        return;
+      }
+    }
     clienteAxios.put(`/campanas/${id}/estado`, { estado: nuevoEstado }, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -208,9 +247,65 @@ const Dashboard = ({ darkMode }) => {
       });
   };
 
+  const manejarDonacionDelete = (id) => {
+    if (!window.confirm('¿Estás seguro de eliminar esta donación?')) return;
+    clienteAxios.delete(`/donaciones/${id}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(res => {
+        mostrarAlerta('success', 'Donación eliminada correctamente');
+        cargarDatos();
+      })
+      .catch(err => {
+        mostrarAlerta('error', err.response?.data?.message || err.message);
+      });
+  };
+
+  const despacharCampana = (campanaId) => {
+    const donacionesCampana = donaciones.filter(d => d.campanaId === campanaId && d.estadoLogistico === 'EN_ACOPIO');
+    if (donacionesCampana.length === 0) {
+      mostrarAlerta('error', 'No hay donaciones en acopio para despachar en esta campaña.');
+      return;
+    }
+    Promise.all(donacionesCampana.map(d => 
+      clienteAxios.put(`/donaciones/${d.id}/estado`, { estadoLogistico: 'EN_TRANSITO' }, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+    ))
+    .then(() => {
+      mostrarAlerta('success', 'Todas las donaciones en acopio de la campaña han sido despachadas.');
+      cargarDatos();
+    })
+    .catch(err => {
+      mostrarAlerta('error', 'Error al despachar algunas donaciones.');
+      cargarDatos();
+    });
+  };
+
+  const entregarCampana = (campanaId) => {
+    const donacionesCampana = donaciones.filter(d => d.campanaId === campanaId && d.estadoLogistico === 'EN_TRANSITO');
+    if (donacionesCampana.length === 0) {
+      mostrarAlerta('error', 'No hay donaciones en tránsito para entregar en esta campaña.');
+      return;
+    }
+    Promise.all(donacionesCampana.map(d => 
+      clienteAxios.put(`/donaciones/${d.id}/estado`, { estadoLogistico: 'ENTREGADO' }, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+    ))
+    .then(() => {
+      mostrarAlerta('success', 'Todas las donaciones en tránsito de la campaña han sido entregadas.');
+      cargarDatos();
+    })
+    .catch(err => {
+      mostrarAlerta('error', 'Error al entregar algunas donaciones.');
+      cargarDatos();
+    });
+  };
+
   const styles = {
     container: {
-      padding: '2.5rem',
+      padding: '5%',
       maxWidth: '1300px',
       margin: '0 auto',
       fontFamily: "'Inter', 'Roboto', sans-serif",
@@ -447,6 +542,7 @@ const Dashboard = ({ darkMode }) => {
             cambiarEstadoDonacion={cambiarEstadoDonacion}
             manejarCampanaDelete={manejarCampanaDelete}
             manejarCampanaUpdate={manejarCampanaUpdate}
+            manejarDonacionDelete={manejarDonacionDelete}
             editandoCampanaId={editandoCampanaId}
             setEditandoCampanaId={setEditandoCampanaId}
             formEditCampana={formEditCampana}
@@ -454,6 +550,9 @@ const Dashboard = ({ darkMode }) => {
             styles={styles}
             onLogout={manejarLogout}
             darkMode={darkMode}
+            voluntariosMap={voluntariosMap}
+            despacharCampana={despacharCampana}
+            entregarCampana={entregarCampana}
           />
         ) : (
           <div style={{ maxWidth: '450px', margin: '2rem auto', ...styles.card }}>

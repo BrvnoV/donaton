@@ -46,8 +46,13 @@ public class BffVoluntarioService {
                 .post()
                 .uri(MS_VOLUNTARIOS_URL + "/voluntarios")
                 .bodyValue(nuevoVoluntario)
-                .retrieve()
-                .bodyToMono(Object.class);
+                .exchangeToMono(response -> {
+                    if (response.statusCode().is4xxClientError()) {
+                        return response.bodyToMono(Object.class)
+                                .defaultIfEmpty(java.util.Collections.singletonMap("message", "Error de validación"));
+                    }
+                    return response.bodyToMono(Object.class);
+                });
     }
 
     // Fallbacks

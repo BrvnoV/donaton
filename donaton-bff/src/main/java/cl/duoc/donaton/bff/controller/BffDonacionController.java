@@ -55,4 +55,14 @@ public class BffDonacionController {
                     return ResponseEntity.ok(resultado);
                 });
     }
+
+    @DeleteMapping("/{id}")
+    public Mono<ResponseEntity<Object>> eliminarDonacion(@PathVariable Long id) {
+        log.info("BFF: Solicitud para eliminar donación ID: {}", id);
+        return bffDonacionService.eliminarDonacion(id)
+                .map(resultado -> {
+                    log.info("BFF: Donación ID {} eliminada con éxito", id);
+                    return ResponseEntity.ok(resultado);
+                });
+    }
 }

@@ -31,6 +31,14 @@ public class BffVoluntarioController {
         log.info("BFF: Solicitud para registrar nuevo voluntario");
         return bffVoluntarioService.registrarVoluntario(nuevoVoluntario)
                 .map(resultado -> {
+                    if (resultado instanceof java.util.Map && ((java.util.Map<?, ?>) resultado).containsKey("error")) {
+                        log.warn("BFF: Error al registrar voluntario: {}", ((java.util.Map<?, ?>) resultado).get("error"));
+                        return ResponseEntity.status(400).body(resultado);
+                    }
+                    if (resultado instanceof java.util.Map && ((java.util.Map<?, ?>) resultado).containsKey("message")) {
+                        log.warn("BFF: Error de negocio al registrar voluntario: {}", ((java.util.Map<?, ?>) resultado).get("message"));
+                        return ResponseEntity.status(400).body(resultado);
+                    }
                     log.info("BFF: Voluntario registrado con éxito");
                     return ResponseEntity.status(201).body(resultado);
                 });

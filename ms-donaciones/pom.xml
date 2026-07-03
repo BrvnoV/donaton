@@ -8,7 +8,7 @@
 		<relativePath /> 
 	</parent>
 	<groupId>cl.duoc.donaton</groupId>
-	<artifactId>donaton-ms-base</artifactId>
+	<artifactId>ms-donaciones</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name />
 	<description />

@@ -36,9 +36,20 @@ public class VoluntarioService {
         }
 
         // Buscar si ya existe por correo
-        if (voluntarioRepository.existsByCorreo(voluntarioInput.getCorreo())) {
-            log.error("Freno de persistencia: El correo {} ya se encuentra registrado", voluntarioInput.getCorreo());
-            throw new cl.duoc.donaton.ms.exception.DuplicateVolunteerException("El correo ya está registrado en el sistema");
+        Optional<Voluntario> existente = voluntarioRepository.findByCorreo(voluntarioInput.getCorreo());
+        if (existente.isPresent()) {
+            Voluntario vol = existente.get();
+            // Verificar si ya está inscrito en esta campaña específica
+            if (vol.getCampanasIds().contains(campanaId)) {
+                log.error("Freno de persistencia: El correo {} ya está inscrito en la campaña ID: {}", voluntarioInput.getCorreo(), campanaId);
+                throw new cl.duoc.donaton.ms.exception.DuplicateVolunteerException("Este correo ya está inscrito en esta campaña");
+            }
+            // Si existe pero en otra campaña, agregar esta campaña
+            log.info("Voluntario con correo {} ya existe, agregando campaña ID: {}", voluntarioInput.getCorreo(), campanaId);
+            vol.getCampanasIds().add(campanaId);
+            Voluntario actualizado = voluntarioRepository.save(vol);
+            log.info("Voluntario actualizado con nueva campaña. ID: {}", actualizado.getId());
+            return actualizado;
         }
         
         log.info("Registrando voluntario nuevo con correo: {}", voluntarioInput.getCorreo());
