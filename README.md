@@ -1,114 +1,79 @@
-<div align="center">
+# 🤝 Donaton — Arquitectura de Microservicios para la Gestión de Ayuda Humanitaria
 
-# 🤝 Donaton Platform
+[![Java 17](https://img.shields.io/badge/Java-17-007396?style=flat&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?style=flat&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Spring WebFlux](https://img.shields.io/badge/Reactive-Spring%20WebFlux-green?style=flat)](https://docs.spring.io/spring-framework/reference/web/webflux.html)
+[![Spring Cloud](https://img.shields.io/badge/Discovery-Eureka%20Server-blue?style=flat)](https://spring.io/projects/spring-cloud)
+[![Resilience4j](https://img.shields.io/badge/Resilience-Circuit%20Breaker-red?style=flat)](https://resilience4j.readme.io/)
+[![Docker](https://img.shields.io/badge/Deployment-Docker%20Compose-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**Plataforma de microservicios para coordinar esfuerzos de ayuda humanitaria frente a emergencias y catástrofes**
-
-Facilita la inscripción de voluntarios y el procesamiento eficiente de donaciones de recursos.
-
-[![Java](https://img.shields.io/badge/Java-17-orange?logo=openjdk)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-6DB33F?logo=springboot)](https://spring.io/projects/spring-boot)
-[![Coverage](https://img.shields.io/badge/coverage-≥60%25-brightgreen)](#-cobertura-de-código)
-[![License](https://img.shields.io/badge/license-MIT-blue)](#-licencia)
-
-</div>
+**Donaton** es un sistema distribuido diseñado para la gestión y coordinación eficiente de ayuda humanitaria frente a emergencias y catástrofes. La arquitectura está construida sobre un paradigma de **microservicios reactivos** desacoplados, coordinados por un API Gateway con patrón **Backend For Frontend (BFF)** y descubrimiento dinámico de servicios.
 
 ---
 
-## 📑 Tabla de contenidos
+## 🏗️ Arquitectura del Sistema
 
-- [Arquitectura](#-arquitectura)
-- [Tecnologías principales](#-tecnologías-principales)
-- [Quick start](#-quick-start)
-- [Seguridad y resiliencia](#-seguridad-y-resiliencia)
-- [Cobertura de código](#-cobertura-de-código)
-- [Repositorios](#-repositorios)
+El ecosistema utiliza el patrón **BFF** como único punto de entrada para los clientes, abstrayendo la complejidad de la red de microservicios y gestionando la autenticación centralizada.
 
----
-
-## 🏗️ Arquitectura
-
-El sistema sigue una **arquitectura de microservicios** orquestada mediante un patrón BFF (Backend For Frontend) con descubrimiento de servicios centralizado.
-
-| Componente | Descripción |
-|---|---|
-| `donaton-bff` | Backend For Frontend que actúa como API Gateway y orquestador principal |
-| `ms-campanas` | Microservicio de gestión de campañas solidarias |
-| `ms-donaciones` | Microservicio de procesamiento de donaciones |
-| `ms-voluntarios` | Microservicio de registro de voluntarios |
-| `eureka-server` | Servidor de descubrimiento de servicios (Spring Cloud Netflix Eureka) |
-| `admin-panel` | Panel de administración |
-| `donaton-front` | Frontend para usuarios finales |
+* **`donaton-bff`**: API Gateway y orquestador principal que canaliza el tráfico cliente.
+* **`eureka-server`**: Servidor de descubrimiento dinámico de servicios (Spring Cloud Netflix Eureka).
+* **`ms-campanas`**: Microservicio para la creación y seguimiento de campañas solidarias.
+* **`ms-donaciones`**: Microservicio enfocado en el procesamiento reactivo de aportes y recursos.
+* **`ms-voluntarios`**: Microservicio para el registro y asignación de personal voluntario.
+* **`admin-panel`**: Interfaz de administración técnica del sistema.
+* **`donaton-front`**: Cliente web enfocado en los usuarios finales.
 
 ---
 
-## 📊 Tecnologías principales
+## 🛠️ Stack Tecnológico
 
-- **Java 17**
-- **Spring Boot 3.x**
-- **Spring WebFlux** — programación reactiva
-- **Spring Cloud Netflix Eureka** — descubrimiento de servicios
-- **Resilience4j** — Circuit Breaker
-- **JJWT** — autenticación JWT
-
----
-
-## 🚀 Quick start
-
-### Prerrequisitos
-
-- Java 17
-- Maven
-- Eureka Server ejecutándose (puerto `8761` por defecto)
-
-### Ejecución individual de servicios
-
-Para ejecutar el BFF (Backend For Frontend):
-
-```bash
-cd donaton-bff
-mvn clean install -DskipTests
-mvn spring-boot:run
-```
-
-### Levantar todos los servicios con Docker Compose
-
-```bash
-docker-compose up -d
-```
+* **Lenguaje & Core:** Java 17 + Spring Boot 3.x
+* **Programación Reactiva:** Spring WebFlux & Project Reactor
+* **Descubrimiento de Servicios:** Spring Cloud Netflix Eureka
+* **Resiliencia:** Resilience4j (Circuit Breaker & Retry patterns)
+* **Seguridad:** JJWT (JSON Web Token) con validación a nivel de Gateway
+* **Contenedorización:** Docker & Docker Compose
+* **Pruebas y Cobertura:** JUnit 5, Mockito & JaCoCo (mínimo 60% de cobertura)
 
 ---
 
-## 🔒 Seguridad y resiliencia
+## 🔒 Seguridad y Resiliencia
 
-- ✅ Validación de tokens JWT antes de alcanzar los microservicios de dominio
-- ✅ Circuit Breaker con **Resilience4j** para manejar caídas de servicios
-- ✅ Patrones **Scatter-Gather** para orquestación reactiva concurrente
-
----
-
-## 📈 Cobertura de código
-
-El proyecto mantiene un **mínimo de 60% de cobertura** en todos los microservicios centrales, con **JaCoCo** configurado como *build breaker*.
+* 🔐 **Validación JWT Centralizada:** Autenticación estricta en el BFF antes de delegar las peticiones a los servicios de dominio.
+* ⚡ **Circuit Breaker:** Tolerancia a fallos con Resilience4j para evitar degradación en cascada si un microservicio cae.
+* 🔄 **Concurrencia Reactiva:** Patrón *Scatter-Gather* para la orquestación concurrente de respuestas entre múltiples servicios sin bloquear hilos.
 
 ---
 
-## 📚 Repositorios
+## 🚀 Despliegue e Instalación Rápida
 
-| Servicio | Enlace |
-|---|---|
-| Frontend | [donaton-front](https://github.com/organizacion-donaton/donaton-front) |
-| BFF | [donaton-bff](https://github.com/organizacion-donaton/donaton-bff) |
-| Microservicio Campañas | [ms-campanas](https://github.com/organizacion-donaton/ms-campanas) |
-| Microservicio Donaciones | [ms-donaciones](https://github.com/organizacion-donaton/ms-donaciones) |
-| Microservicio Voluntarios | [ms-voluntarios](https://github.com/organizacion-donaton/ms-voluntarios) |
-| Eureka Server | [eureka-server](https://github.com/organizacion-donaton/eureka-server) |
-| Panel Admin | [admin-panel](https://github.com/organizacion-donaton/admin-panel) |
+### Requisitos Previos
+* **Java 17** y **Maven 3.8+**
+* **Docker** y **Docker Compose**
+
+### Opción A: Despliegue con Docker Compose (Recomendado)
+Para levantar la infraestructura completa (Servidor de descubrimiento, BFF, microservicios y bases de datos):
+
+1. **Clonar el repositorio:**
+   `git clone https://github.com/tu-usuario/donaton.git`
+   `cd donaton`
+
+2. **Iniciar los contenedores:**
+   `docker-compose up -d`
+
+3. **Verificar el Discovery Server:**
+   Accede a Eureka Dashboard en: `http://localhost:8761`
 
 ---
 
-<div align="center">
+## 👥 Colaboradores
 
-Hecho con ❤️ por el equipo **Donaton**
+* **Bruno Valenzuela** — *Backend & Software Architect* — [GitHub](https://github.com/tu-usuario) | [LinkedIn](https://linkedin.com/in/tu-perfil)
+* **Rodrigo Garrido** — *Co-Developer*
 
-</div>
+---
+
+## 📄 Licencia
+
+Este proyecto está distribuido bajo la Licencia [MIT](LICENSE).
